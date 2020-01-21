@@ -24,15 +24,20 @@ struct Main
 {
 	Timer::Connection timer;
 	Uart::Connection  uart;
-	char              buf[100];
+	char              buf[100]={106,0000,0000};
 
 	Main(Env &env) : timer(env), uart(env)
 	{
 		log("--- UART test started ---");
-
-		for (unsigned i = 0; ; ++i) {
-			int n = snprintf(buf, sizeof(buf), "UART test message %d\n", i);
-			uart.write(buf, n);
+		while(1)
+		{
+			log("Send ",buf[0]);
+			char _buf[100];
+			uart.read(_buf,7);
+			log("Recv ",_buf[0],_buf[1],_buf[2],_buf[3],_buf[4],_buf[5],_buf[6]);
+			//buf[0]='2';
+			//buf[1]='1';
+			uart.write(buf, 3);
 			timer.msleep(2000);
 		}
 	}

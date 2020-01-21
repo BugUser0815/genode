@@ -1,8 +1,8 @@
-#
+##
 # Build
 #
 
-assert_spec pbxa9
+#assert_spec pbxa9
 
 # generic components
 set build_components {
@@ -31,6 +31,7 @@ set config  {
 			<service name="CPU"/>
 			<service name="LOG"/>
 		</parent-provides>
+		<default caps="1000"/>
 		<default-route>
 			<any-service> <parent/> <any-child/> </any-service>
 		</default-route>
@@ -39,22 +40,17 @@ set config  {
 			<resource name="RAM" quantum="1M"/>
 			<provides><service name="Timer"/></provides>
 		</start>
-		<start name="pbxa9_uart_drv">
+		<start name="imx6_uart_drv">
 			<resource name="RAM" quantum="1M"/>
 			<provides>
 				<service name="Uart"/>
 				<service name="Terminal"/>
 			</provides>
 			<config>
-				<policy label_prefix="test-uart1" uart="1"/>
-				<policy label_prefix="test-uart2" uart="1"/>
+				<policy label_prefix="test-uart1" uart="1" baudrate="115200"/>
 			</config>
 		</start>
 		<start name="test-uart1">
-			<binary name="test-uart"/>
-			<resource name="RAM" quantum="1M"/>
-		</start>
-		<start name="test-uart2">
 			<binary name="test-uart"/>
 			<resource name="RAM" quantum="1M"/>
 		</start>
@@ -71,7 +67,7 @@ install_config $config
 # generic modules
 set boot_modules {
 	core ld.lib.so init
-	timer pbxa9_uart_drv test-uart
+	timer imx6_uart_drv test-uart
 }
 
 build_boot_image $boot_modules
