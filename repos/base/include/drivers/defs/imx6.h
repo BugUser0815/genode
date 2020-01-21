@@ -30,6 +30,19 @@ namespace Imx6 {
 		UART_2_MMIO_BASE = 0x021e8000,
 		UART_2_MMIO_SIZE = 0x00004000,
 
+		UART_3_IRQ       = 60,
+                UART_3_MMIO_BASE = 0x021ec000,
+                UART_3_MMIO_SIZE = 0x00004000,
+
+		UART_4_IRQ       = 61,
+                UART_4_MMIO_BASE = 0x021f0000,
+                UART_4_MMIO_SIZE = 0x00114000,
+		UART_4_PAD_MUX	 = 0x020e0000,
+
+		UART_5_IRQ       = 62,
+                UART_5_MMIO_BASE = 0x021f4000,
+                UART_5_MMIO_SIZE = 0x00004000,
+
 		/* timer */
 		EPIT_2_IRQ       = 89,
 		EPIT_2_MMIO_BASE = 0x020d4000,
