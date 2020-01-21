@@ -26,10 +26,39 @@ namespace Genode { class Imx_uart; }
  */
 class Genode::Imx_uart: Mmio
 {
+	struct Pmr : Register<0x1f8, 32>
+	{
+		struct Mux_mode_0 : Bitfield<0, 1> { };
+		struct Mux_mode_1 : Bitfield<1, 1> { };
+		struct Mux_mode_2 : Bitfield<2, 1> { };
+
+		static access_t init_value()
+                {
+                        return Mux_mode_0::bits(0) |
+				Mux_mode_1::bits(0) |
+				Mux_mode_2::bits(1);
+		}
+	};
+
+	struct Pmr0 : Register<0x1fc, 32>
+        {
+                struct Mux_mode_0 : Bitfield<0, 1> { };
+                struct Mux_mode_1 : Bitfield<1, 1> { };
+                struct Mux_mode_2 : Bitfield<2, 1> { };
+
+                static access_t init_value()
+                {
+                        return Mux_mode_0::bits(0) |
+                                Mux_mode_1::bits(0) |
+                                Mux_mode_2::bits(1);
+                }
+        };
+
+
 	/**
 	 * Control register 1
 	 */
-	struct Cr1 : Register<0x80, 32>
+	struct Cr1 : Register<0x110080, 32>
 	{
 		struct Uart_en    : Bitfield<0, 1> { }; /* enable UART */
 		struct Doze       : Bitfield<1, 1> { }; /* disable on doze */
@@ -64,11 +93,11 @@ class Genode::Imx_uart: Mmio
 				   At_dma_en::bits(0) |
 				   Tx_dma_en::bits(0) |
 				   Snd_brk::bits(0) |
-				   Rtsd_en::bits(0) |
+				   Rtsd_en::bits(1) |
 				   Tx_mpty_en::bits(0) |
 				   Ir_en::bits(0) |
 				   Rx_dma_en::bits(0) |
-				   R_rdy_en::bits(0) |
+				   R_rdy_en::bits(1) |
 				   Id_en::bits(0) |
 				   T_rdy_en::bits(0) |
 				   Adbr::bits(0) |
@@ -80,7 +109,7 @@ class Genode::Imx_uart: Mmio
 	/**
 	 * Control register 2
 	 */
-	struct Cr2 : Register<0x84, 32>
+	struct Cr2 : Register<0x110084, 32>
 	{
 		struct S_rst : Bitfield<0, 1> /* SW reset bit */
 		{
@@ -103,6 +132,7 @@ class Genode::Imx_uart: Mmio
 		};
 
 		struct Pr_en  : Bitfield<8, 1> { };  /* enable parity */
+		struct Rtec_any : Bitfield<9, 1> { }; /* Trigger IRQ on any edge */
 		struct Esc_en : Bitfield<11, 1> { }; /* escape detection on */
 
 		struct Ctsc   : Bitfield<13, 1>      /* select CTS control */
@@ -119,24 +149,25 @@ class Genode::Imx_uart: Mmio
 		static access_t init_value()
 		{
 			return S_rst::bits(S_rst::NO_RESET) |
-				   Rx_en::bits(0) |
+				   Rx_en::bits(1) |
 				   Tx_en::bits(1) |
 				   At_en::bits(0) |
 				   Rts_en::bits(0) |
 				   Ws::bits(Ws::_8_BITS) |
 				   Stpb::bits(Stpb::_1_BIT) |
-				   Pr_en::bits(0) |
-				   Esc_en::bits(0) |
+				   Pr_en::bits(1) |
+				   Rtec_any::bits(2) |
+				   Esc_en::bits(1) |
 				   Ctsc::bits(Ctsc::BY_RECEIVER) |
 				   Irts::bits(1) |
-				   Esci::bits(0);
+				   Esci::bits(1);
 		}
 	};
 
 	/**
 	 * Control register 3
 	 */
-	struct Cr3 : Register<0x88, 32>
+	struct Cr3 : Register<0x110088, 32>
 	{
 		struct Rxdmux_sel : Bitfield<2, 1> { }; /* use muxed RXD */
 		struct Aci_en     : Bitfield<0, 1> { }; /* autobaud count IRQ on */
@@ -162,9 +193,9 @@ class Genode::Imx_uart: Mmio
 		 */
 		static access_t init_value()
 		{
-			return Aci_en::bits(0) |
-				   Rxdmux_sel::bits(0) |
-				   Dtrd_en::bits(0) |
+			return Aci_en::bits(1) |
+				   Rxdmux_sel::bits(1) |
+				   Dtrd_en::bits(1) |
 				   Awak_en::bits(0) |
 				   Air_int_en::bits(0) |
 				   Rx_ds_en::bits(0) |
@@ -182,7 +213,7 @@ class Genode::Imx_uart: Mmio
 	/**
 	 * Control register 4
 	 */
-	struct Cr4 : Register<0x8c, 32>
+	struct Cr4 : Register<0x11008c, 32>
 	{
 		struct Dr_en       : Bitfield<0, 1> { }; /* RX data ready IRQ on */
 		struct Or_en       : Bitfield<1, 1> { }; /* RX overrun IRQ on */
@@ -201,33 +232,51 @@ class Genode::Imx_uart: Mmio
 		 */
 		static access_t init_value()
 		{
-			return Dr_en::bits(0) |
-			       Or_en::bits(0) |
-			       Bk_en::bits(0) |
-			       Tc_en::bits(0) |
-			       Lp_dis::bits(0) |
-			       IR_sc::bits(0) |
-			       Id_dma_en::bits(0) |
-			       Wake_en::bits(0) |
-			       IR_en::bits(0) |
+			return Dr_en::bits(1) |
+			       Or_en::bits(1) |
+			       Bk_en::bits(1) |
+			       Tc_en::bits(1) |
+			       Lp_dis::bits(1) |
+			       IR_sc::bits(1) |
+			       Id_dma_en::bits(1) |
+			       Wake_en::bits(1) |
+			       IR_en::bits(1) |
 			       Cts_level::bits(0);
 		}
 	};
 
 	/**
+	 * Status register 1
+	 */
+	struct Sr1 : Register<0x110094, 32>
+	{
+		struct Wake : Bitfield<4, 1> { }; /* Asynchronous WAKE Interrupt Flag */
+		struct Tr_ready : Bitfield<13, 1> { }; /* Transmitter Ready */
+	};
+
+	/**
 	 * Status register 2
 	 */
-	struct Sr2 : Register<0x98, 32>
+	struct Sr2 : Register<0x110098, 32>
 	{
+		struct Recv_ready : Bitfield<0, 1> { }; /* Receive Data Ready */
+		struct Error : Bitfield<1, 1> { }; /* Overrun Error */
+		struct Break : Bitfield<2, 1> { }; /* Break Condition Detected */
 		struct Txdc : Bitfield<3, 1> { }; /* transmission complete */
+		struct Empty : Bitfield<14, 1> { }; /* Transmit Buffer FIFO Empty */
 	};
 
 	/**
 	 * Transmitter register
 	 */
-	struct Txd : Register<0x40, 32>
+	struct Txd : Register<0x110040, 32>
 	{
 		struct Tx_data : Bitfield<0, 8> { }; /* transmit data */
+	};
+
+	struct Rxd : Register<0x110000, 32>
+	{
+		struct Rx_data : Bitfield<0, 8> { };
 	};
 
 	/**
@@ -235,8 +284,9 @@ class Genode::Imx_uart: Mmio
 	 */
 	void _put_char(char c)
 	{
-		while (!read<Sr2::Txdc>()) ;
+		while (!read<Sr2::Txdc>()) { Genode::log("transmition not complete"); };
 		write<Txd::Tx_data>(c);
+		Genode::log("Done");
 	}
 
 	public:
@@ -248,6 +298,7 @@ class Genode::Imx_uart: Mmio
 		 */
 		Imx_uart(addr_t base, uint32_t, uint32_t) : Mmio(base)
 		{
+			write<Pmr>(Pmr::init_value());
 			write<Cr1>(Cr1::init_value());
 			write<Cr2>(Cr2::init_value());
 			write<Cr3>(Cr3::init_value());
@@ -261,6 +312,17 @@ class Genode::Imx_uart: Mmio
 		{
 			/* transmit character */
 			_put_char(c);
+		}
+
+		char read_char()
+		{
+			while(!read<Sr2::Recv_ready>());
+			return read<Rxd::Rx_data>();
+		}
+
+		bool char_ready()
+		{
+			return read<Sr2::Recv_ready>();
 		}
 };
 
